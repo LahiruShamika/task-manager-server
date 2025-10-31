@@ -1,16 +1,35 @@
-import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
+const { Sequelize } = require('sequelize');
+require('dotenv').config();
+const config = require('./config.json');
 
-dotenv.config();
+const env = process.env.NODE_ENV || 'development';
+const dbConfig = config[env];
 
-const sequelize = new Sequelize(
-  process.env.DATABASE_URL || 'sqlite:./task_managment_db.sqlite',
-  {
-    logging: false,
-    dialectOptions: {
-      useUTC: true,
-    },
+const sequelize = new Sequelize({
+  dialect: dbConfig.dialect,
+  storage: dbConfig.storage,
+  logging: console.log,
+  define: {
+    timestamps: true,
+    underscored: false,
+    freezeTableName: true,
+  },
+  dialectOptions: {
+    useUTC: false,
+  },
+});
+
+const testConnection = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ Database connection has been established successfully.');
+  } catch (error) {
+    console.error('❌ Unable to connect to the database:', error);
   }
-);
+};
 
-export default sequelize;
+if (env === 'development') {
+  testConnection();
+}
+
+module.exports = { sequelize, testConnection };

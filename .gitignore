@@ -80,3 +80,7 @@ dist/
 tmp/
 temp/
 
+# Databases
+*.sqlite
+*.sqlite3
+
