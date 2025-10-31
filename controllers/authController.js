@@ -1,5 +1,6 @@
 const { User } = require('../models');
 const { body, validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const registerValidators = [
@@ -39,7 +40,18 @@ const login = async (req, res, next) => {
     if (!user) return res.status(401).json({ error: 'Invalid email or password' });
     const isPasswordValid = await user.checkPassword(password);
     if (!isPasswordValid) return res.status(401).json({ error: 'Invalid email or password' });
-    res.status(200).json({ message:'Login successful', user: user.toJSON() });
+    
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+      { expiresIn: '7d' }
+    );
+    
+    res.status(200).json({ 
+      message:'Login successful', 
+      user: user.toJSON(),
+      token 
+    });
   } catch (err) {
     next(err);
   }
